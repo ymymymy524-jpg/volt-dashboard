@@ -151,28 +151,34 @@ ALL_COMMANDS = [
 # =================== Routes ===================
 
 # ═══════════════════════════════════════
-# 🏠 الراوت الذكي - Dashboard أو Landing
+# 🏠 الصفحة الرئيسية - Landing للكل
 # ═══════════════════════════════════════
 @app.route('/')
 def index():
     """
-    الصفحة الرئيسية:
-    - لو مسجل دخول → Dashboard
-    - لو مش مسجل → Landing + زر تسجيل الدخول
+    الصفحة الرئيسية - Landing للكل
+    الـ JavaScript بيبدل الأزرار حسب تسجيل الدخول:
+    - مسجل → زر "لوحة التحكم"
+    - مش مسجل → زر "تسجيل الدخول"
     """
-    if 'user' in session:
-        # ✅ المستخدم مسجل → Dashboard
-        return render_template('index.html')
-    else:
-        # ❌ المستخدم مش مسجل → Landing
-        return render_template('login.html', 
-                             discord_login_url=get_login_url())
+    return render_template('login.html', 
+                         discord_login_url=get_login_url())
+
+
+# ═══════════════════════════════════════
+# 📊 لوحة التحكم - للمسجلين بس
+# ═══════════════════════════════════════
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    """لوحة التحكم - للمسجلين بس"""
+    return render_template('index.html')
 
 
 @app.route('/login')
 def login():
     if 'user' in session:
-        return redirect(url_for('index'))
+        return redirect(url_for('dashboard'))
     
     return render_template('login.html', discord_login_url=get_login_url())
 
@@ -226,7 +232,8 @@ def callback():
     session['is_admin'] = is_user_admin(access_token)
     session['guild_id'] = guild_id
     
-    return redirect(url_for('index'))
+    # ⚡ بعد تسجيل الدخول → Dashboard
+    return redirect(url_for('dashboard'))
 
 
 @app.route('/logout')
@@ -235,6 +242,9 @@ def logout():
     return redirect(url_for('index'))
 
 
+# ═══════════════════════════════════════
+# 📄 صفحات تانية (محمية بـ login)
+# ═══════════════════════════════════════
 @app.route('/commands')
 @login_required
 def commands():
