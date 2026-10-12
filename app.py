@@ -40,7 +40,7 @@ app.config['SESSION_COOKIE_NAME'] = 'volt_session'
 # ═══════════════════════════════════════
 RAILWAY_API_URL = os.getenv(
     "RAILWAY_API_URL",
-    "https://volt-bot-ijni.up.railway.app"
+    "https://volt-bot-production-840e.up.railway.app"
 )
 BOT_API_SECRET = os.getenv("BOT_API_SECRET", "volt_secret_2024")
 
@@ -59,7 +59,6 @@ def load_json_file(filename):
     filepath = os.path.join('..', filename)
     if not os.path.exists(filepath):
         filepath = filename
-    
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -73,7 +72,6 @@ def save_json_file(filename, data):
     filepath = os.path.join('..', filename)
     if not os.path.exists(filepath):
         filepath = filename
-    
     with open(filepath, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
@@ -83,68 +81,181 @@ def get_all_users():
     levels_data = load_json_file('levels.json')
     games_data = load_json_file('games.json')
     invites_data = load_json_file('invites.json')
-    
     users = {}
-    
     for user_id, data in bitcoin_data.items():
         if user_id not in users:
             users[user_id] = {'id': user_id, 'name': f'User {user_id}'}
         users[user_id]['balance'] = data.get('balance', 0)
         users[user_id]['total_earned'] = data.get('total_earned', 0)
         users[user_id]['total_spent'] = data.get('total_spent', 0)
-    
     for guild_id, guild_data in levels_data.items():
         for user_id, data in guild_data.items():
             if user_id not in users:
                 users[user_id] = {'id': user_id, 'name': f'User {user_id}'}
             users[user_id]['level'] = data.get('level', 0)
             users[user_id]['xp'] = data.get('xp', 0)
-    
     for user_id, data in games_data.items():
         if user_id not in users:
             users[user_id] = {'id': user_id, 'name': f'User {user_id}'}
         users[user_id]['fizzy'] = data.get('fizzy', 0)
-    
     for guild_id, guild_data in invites_data.items():
         for user_id, data in guild_data.items():
             if user_id not in users:
                 users[user_id] = {'id': user_id, 'name': f'User {user_id}'}
             users[user_id]['invites_real'] = data.get('real', 0)
             users[user_id]['invites_fake'] = data.get('fake', 0)
-    
     return users
 
 
 # ═══════════════════════════════════════
-# 📋 قائمة الأوامر
+# 📋 قائمة الأوامر الكاملة (129 أمر)
 # ═══════════════════════════════════════
 ALL_COMMANDS = [
-    {"name": "ban", "description": "حظر عضو", "category": "الإدارة"},
-    {"name": "kick", "description": "طرد عضو", "category": "الإدارة"},
-    {"name": "unban", "description": "فك حظر عضو", "category": "الإدارة"},
-    {"name": "warn", "description": "إنذار عضو", "category": "الإدارة"},
-    {"name": "mute", "description": "كتم عضو", "category": "الإدارة"},
-    {"name": "clear", "description": "مسح رسائل", "category": "الإدارة"},
-    {"name": "role", "description": "إدارة الرتب", "category": "الإدارة"},
-    {"name": "rank", "description": "مستواك", "category": "المستويات"},
-    {"name": "top", "description": "أفضل الأعضاء", "category": "المستويات"},
-    {"name": "play", "description": "تشغيل أغنية", "category": "الموسيقى"},
-    {"name": "skip", "description": "تخطي", "category": "الموسيقى"},
-    {"name": "stop", "description": "إيقاف", "category": "الموسيقى"},
-    {"name": "queue", "description": "قائمة التشغيل", "category": "الموسيقى"},
-    {"name": "balance", "description": "الرصيد", "category": "الاقتصاد"},
-    {"name": "daily", "description": "المكافأة اليومية", "category": "الاقتصاد"},
-    {"name": "work", "description": "العمل", "category": "الاقتصاد"},
-    {"name": "transfer", "description": "تحويل", "category": "الاقتصاد"},
-    {"name": "shop", "description": "المتجر", "category": "الاقتصاد"},
-    {"name": "buy", "description": "شراء", "category": "الاقتصاد"},
-    {"name": "roulette", "description": "الروليت", "category": "الألعاب"},
-    {"name": "bomb", "description": "القنبلة", "category": "الألعاب"},
-    {"name": "fizzy", "description": "رصيد Fizzy", "category": "الألعاب"},
+    # ═══ 🛠️ عام (General) ═══
     {"name": "ping", "description": "سرعة البوت", "category": "عام"},
-    {"name": "help", "description": "المساعدة", "category": "عام"},
+    {"name": "avatar", "description": "صورة عضو", "category": "عام"},
+    {"name": "banner", "description": "بانر عضو", "category": "عام"},
     {"name": "user", "description": "معلومات عضو", "category": "عام"},
     {"name": "server", "description": "معلومات السيرفر", "category": "عام"},
+    {"name": "volt", "description": "رصيد Bitcoin", "category": "عام"},
+
+    # ═══ 👑 إدارة (Moderation) ═══
+    {"name": "ban", "description": "حظر عضو", "category": "الإدارة"},
+    {"name": "ban-all", "description": "حظر جماعي", "category": "الإدارة"},
+    {"name": "unban", "description": "فك حظر عضو", "category": "الإدارة"},
+    {"name": "kick", "description": "طرد عضو", "category": "الإدارة"},
+    {"name": "warn", "description": "إنذار عضو", "category": "الإدارة"},
+    {"name": "warn add", "description": "إضافة إنذار", "category": "الإدارة"},
+    {"name": "warn list", "description": "عرض الإنذارات", "category": "الإدارة"},
+    {"name": "warn clear", "description": "مسح الإنذارات", "category": "الإدارة"},
+    {"name": "mute", "description": "كتم عضو", "category": "الإدارة"},
+    {"name": "mute-all", "description": "كتم جماعي", "category": "الإدارة"},
+    {"name": "unmute", "description": "فك الكتم", "category": "الإدارة"},
+    {"name": "timeout", "description": "توقيت عضو", "category": "الإدارة"},
+    {"name": "untimeout", "description": "إلغاء التوقيت", "category": "الإدارة"},
+    {"name": "voicemute", "description": "كتم صوتي", "category": "الإدارة"},
+    {"name": "voicedeafen", "description": "منع السماع", "category": "الإدارة"},
+    {"name": "clear", "description": "مسح رسائل", "category": "الإدارة"},
+    {"name": "slowmode", "description": "الوضع البطيء", "category": "الإدارة"},
+    {"name": "lock", "description": "قفل القناة", "category": "الإدارة"},
+    {"name": "unlock", "description": "فتح القناة", "category": "الإدارة"},
+    {"name": "hide", "description": "إخفاء القناة", "category": "الإدارة"},
+    {"name": "unhide", "description": "إظهار القناة", "category": "الإدارة"},
+    {"name": "move", "description": "نقل عضو صوتي", "category": "الإدارة"},
+    {"name": "nick", "description": "تغيير اللقب", "category": "الإدارة"},
+
+    # ═══ 🛡️ حماية (Protection) ═══
+    {"name": "protection", "description": "أوامر الحماية", "category": "الحماية"},
+    {"name": "protection auto", "description": "حماية تلقائية", "category": "الحماية"},
+    {"name": "protection spam", "description": "حماية من السبام", "category": "الحماية"},
+    {"name": "protection link", "description": "حماية من الروابط", "category": "الحماية"},
+    {"name": "protection join", "description": "حماية من الحسابات الجديدة", "category": "الحماية"},
+    {"name": "protection hacked", "description": "حماية من الاختراق", "category": "الحماية"},
+    {"name": "protection bans", "description": "حماية من الحظر الجماعي", "category": "الحماية"},
+    {"name": "protection kicks", "description": "حماية من الطرد الجماعي", "category": "الحماية"},
+    {"name": "protection channels", "description": "حماية القنوات", "category": "الحماية"},
+    {"name": "protection roles", "description": "حماية الرتب", "category": "الحماية"},
+    {"name": "protection bots", "description": "حماية من البوتات", "category": "الحماية"},
+    {"name": "protection status", "description": "حالة الحماية", "category": "الحماية"},
+
+    # ═══ 📊 مستويات (Levels) ═══
+    {"name": "rank", "description": "مستوى العضو", "category": "المستويات"},
+    {"name": "top", "description": "أفضل الأعضاء", "category": "المستويات"},
+    {"name": "setlevel", "description": "تعيين مستوى", "category": "المستويات"},
+    {"name": "resetlevel", "description": "تصفير المستوى", "category": "المستويات"},
+
+    # ═══ 👋 ترحيب (Welcome) ═══
+    {"name": "setwelcome", "description": "تعيين روم الترحيب", "category": "الترحيب"},
+    {"name": "setgoodbye", "description": "تعيين روم الوداع", "category": "الترحيب"},
+    {"name": "testwelcome", "description": "اختبار الترحيب", "category": "الترحيب"},
+    {"name": "welcome-set-status", "description": "تشغيل/إيقاف الترحيب", "category": "الترحيب"},
+
+    # ═══ 🎵 موسيقى (Music) ═══
+    {"name": "play", "description": "تشغيل أغنية", "category": "الموسيقى"},
+    {"name": "skip", "description": "تخطي الأغنية", "category": "الموسيقى"},
+    {"name": "stop", "description": "إيقاف التشغيل", "category": "الموسيقى"},
+    {"name": "pause", "description": "إيقاف مؤقت", "category": "الموسيقى"},
+    {"name": "resume", "description": "استكمال", "category": "الموسيقى"},
+    {"name": "queue", "description": "قائمة التشغيل", "category": "الموسيقى"},
+    {"name": "nowplaying", "description": "الأغنية الحالية", "category": "الموسيقى"},
+    {"name": "volume", "description": "مستوى الصوت", "category": "الموسيقى"},
+    {"name": "shuffle", "description": "خلط القائمة", "category": "الموسيقى"},
+
+    # ═══ 📨 دعوات (Invites) ═══
+    {"name": "invites", "description": "عدد الدعوات", "category": "الدعوات"},
+    {"name": "inviter", "description": "مين دعاك؟", "category": "الدعوات"},
+    {"name": "invitetop", "description": "أفضل الداعين", "category": "الدعوات"},
+    {"name": "resetinvites", "description": "تصفير الدعوات", "category": "الدعوات"},
+
+    # ═══ 🎫 تذاكر (Tickets) ═══
+    {"name": "ticket", "description": "فتح تذكرة", "category": "التذاكر"},
+    {"name": "close", "description": "إغلاق التذكرة", "category": "التذاكر"},
+    {"name": "add", "description": "إضافة عضو للتذكرة", "category": "التذاكر"},
+    {"name": "remove", "description": "إزالة عضو من التذكرة", "category": "التذاكر"},
+    {"name": "setticket", "description": "إعداد نظام التذاكر", "category": "التذاكر"},
+
+    # ═══ 🎮 ألعاب (Games) ═══
+    {"name": "bomb", "description": "لعبة القنبلة الموقوتة", "category": "الألعاب"},
+    {"name": "button", "description": "لعبة زر الحظ", "category": "الألعاب"},
+    {"name": "chairs", "description": "لعبة الكراسي الموسيقية", "category": "الألعاب"},
+    {"name": "colors", "description": "لعبة تخمين الألوان", "category": "الألعاب"},
+    {"name": "faster", "description": "لعبة الأسرع في الكتابة", "category": "الألعاب"},
+    {"name": "flags", "description": "لعبة تخمين الأعلام", "category": "الألعاب"},
+    {"name": "mafia", "description": "لعبة المافيا", "category": "الألعاب"},
+    {"name": "roulette", "description": "لعبة الروليت الروسية", "category": "الألعاب"},
+    {"name": "fizzy", "description": "رصيد Fizzy", "category": "الألعاب"},
+    {"name": "fizzytop", "description": "أفضل 10 لاعبين في Fizzy", "category": "الألعاب"},
+
+    # ═══ 💎 اقتصاد (Economy) ═══
+    {"name": "balance", "description": "عرض الرصيد", "category": "الاقتصاد"},
+    {"name": "daily", "description": "المكافأة اليومية", "category": "الاقتصاد"},
+    {"name": "work", "description": "العمل", "category": "الاقتصاد"},
+    {"name": "transfer", "description": "تحويل الرصيد", "category": "الاقتصاد"},
+    {"name": "shop", "description": "المتجر", "category": "الاقتصاد"},
+    {"name": "buy", "description": "شراء من المتجر", "category": "الاقتصاد"},
+    {"name": "history", "description": "سجل المعاملات", "category": "الاقتصاد"},
+    {"name": "badmin", "description": "إدارة الاقتصاد", "category": "الاقتصاد"},
+
+    # ═══ 🤖 ذكاء اصطناعي (AI) ═══
+    {"name": "ask", "description": "اسأل الـ AI", "category": "الذكاء الاصطناعي"},
+    {"name": "imagine", "description": "تخيل فكرة", "category": "الذكاء الاصطناعي"},
+    {"name": "translate", "description": "ترجمة نص", "category": "الذكاء الاصطناعي"},
+    {"name": "summarize", "description": "تلخيص نص", "category": "الذكاء الاصطناعي"},
+    {"name": "code", "description": "مساعدة في الكود", "category": "الذكاء الاصطناعي"},
+    {"name": "story", "description": "كتابة قصة", "category": "الذكاء الاصطناعي"},
+    {"name": "analyze", "description": "تحليل نص", "category": "الذكاء الاصطناعي"},
+
+    # ═══ ⚙️ إعدادات (Settings) ═══
+    {"name": "setup", "description": "معالج الإعداد", "category": "الإعدادات"},
+    {"name": "add-emoji", "description": "إضافة إيموجي", "category": "الإعدادات"},
+    {"name": "auto-message", "description": "الرسائل التلقائية", "category": "الإعدادات"},
+    {"name": "auto-message add", "description": "إضافة رسالة", "category": "الإعدادات"},
+    {"name": "auto-message delete", "description": "حذف رسالة", "category": "الإعدادات"},
+    {"name": "auto-message list", "description": "عرض الرسائل", "category": "الإعدادات"},
+    {"name": "auto-reply", "description": "الردود التلقائية", "category": "الإعدادات"},
+    {"name": "auto-reply add", "description": "إضافة رد", "category": "الإعدادات"},
+    {"name": "auto-reply delete", "description": "حذف رد", "category": "الإعدادات"},
+    {"name": "auto-reply show", "description": "عرض الردود", "category": "الإعدادات"},
+    {"name": "automod", "description": "الإشراف التلقائي", "category": "الإعدادات"},
+    {"name": "automod create", "description": "إنشاء قاعدة", "category": "الإعدادات"},
+    {"name": "automod delete", "description": "حذف قاعدة", "category": "الإعدادات"},
+    {"name": "autorole", "description": "رتبة تلقائية", "category": "الإعدادات"},
+    {"name": "log", "description": "السجلات", "category": "الإعدادات"},
+    {"name": "log set", "description": "تعيين روم اللوج", "category": "الإعدادات"},
+    {"name": "log stop", "description": "إيقاف السجلات", "category": "الإعدادات"},
+    {"name": "perms", "description": "الصلاحيات", "category": "الإعدادات"},
+    {"name": "settings", "description": "إعدادات السيرفر", "category": "الإعدادات"},
+
+    # ═══ 🎫 مساعدة (Help) ═══
+    {"name": "help", "description": "قائمة المساعدة", "category": "عام"},
+    {"name": "اختصارات", "description": "عرض الاختصارات", "category": "الإعدادات"},
+    {"name": "تحديث-اختصارات", "description": "إعادة تحميل الاختصارات", "category": "الإعدادات"},
+
+    # ═══ 📢 برودكاست (Broadcast) ═══
+    {"name": "broadcast", "description": "إرسال رسالة للأعضاء", "category": "الإدارة"},
+    {"name": "broadcast-embed", "description": "إرسال Embed للأعضاء", "category": "الإدارة"},
+    {"name": "broadcast-cancel", "description": "إلغاء البرودكاست", "category": "الإدارة"},
+    {"name": "broadcast-status", "description": "حالة البرودكاست", "category": "الإدارة"},
 ]
 
 
